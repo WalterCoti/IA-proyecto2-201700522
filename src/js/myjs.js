@@ -7,6 +7,7 @@ const predictButton = document.getElementById("predictButton");
 const showGraphButton = document.getElementById("showGraphButton");
 const graphCanvas = document.getElementById("graphCanvas");
 const fileContent = document.getElementById("fileContent");
+const xValue = document.getElementById("valorX");
 
 // Variables para almacenar datos
 let data = [];
@@ -97,7 +98,24 @@ predictButton.addEventListener("click", () => {
             prediction = model.predecir(sample);
             break;
         case "regresion_lineal":
+            
+            //obtener el valor del modal
+            const modal = document.getElementById("modalX");
+            const span = document.getElementsByClassName("close")[0];
+            const valorX = document.getElementById("valorX");
+            const insertarX = document.getElementById("insertarX");
+            modal.style.display = "block";
+            span.onclick = function() {
+                modal.style.display = "none";
+            }
+            insertarX.onclick = function() {
+                modal.style.display = "none";
+            }
+            const Value = valorX.value;
+            prediction = model.predict([Value]);
+            break;
         case "regresion_polinomial":
+
             const xValue = 5;
             prediction = model.predict([xValue]);
             break;
@@ -147,5 +165,113 @@ showGraphButton.addEventListener("click", () => {
         // Acceder a los centros y asignaciones de los clusters
     }
 
-    // Otros gráficos para otros modelos
+    let chartInstance = null; // Variable global para almacenar la instancia de Chart.js
+
+// Función para mostrar la gráfica con Chart.js
+function renderChart(xData, yData, yPredicted = null, type = 'scatter') {
+    const ctx = document.getElementById('chartCanvas').getContext('2d');
+
+    // Destruir la instancia de gráfico previa si existe, para evitar superposiciones
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    // Configuración del gráfico
+    const config = {
+        type: type === 'scatter' ? 'scatter' : 'line',
+        data: {
+            datasets: [
+                {
+                    label: 'Datos Originales',
+                    data: xData.map((x, i) => ({ x: x, y: yData[i] })),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    showLine: false, // Solo puntos
+                    pointRadius: 4,
+                },
+                {
+                    label: 'Predicción',
+                    data: yPredicted ? xData.map((x, i) => ({ x: x, y: yPredicted[i] })) : [],
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    showLine: true,
+                    pointRadius: 0,
+                }
+            ],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: { display: true, text: 'X' },
+                },
+                y: {
+                    title: { display: true, text: 'Y' },
+                }
+            }
+        }
+    };
+
+    // Crear el gráfico
+    chartInstance = new Chart(ctx, config);
+}
+
+// Función para graficar datos de regresión
+function showRegressionChart() {
+    const xValues = data.map(row => row[0]);
+    const yValues = data.map(row => row[1]);
+    const yPredicted = model.predict(xValues); // Predicción del modelo entrenado
+    renderChart(xValues, yValues, yPredicted, 'line');
+}
+
+// Función para graficar datos de clustering (ejemplo para K-Means)
+function showClusteringChart() {
+    const clusters = model.getClusters(); // Método del modelo para obtener clusters (suponiendo que lo tienes implementado)
+    const datasets = clusters.map((cluster, index) => ({
+        label: `Cluster ${index + 1}`,
+        data: cluster.map(point => ({ x: point[0], y: point[1] })),
+        backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.6)`,
+        pointRadius: 4,
+    }));
+
+    const ctx = document.getElementById('chartCanvas').getContext('2d');
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+            responsive: true,
+            scales: {
+                x: { type: 'linear', position: 'bottom', title: { display: true, text: 'X' } },
+                y: { title: { display: true, text: 'Y' } }
+            }
+        }
+    });
+}
+
+// Modificación del event listener para graficar según el modelo
+showGraphButton.addEventListener("click", () => {
+    if (!model) {
+        alert("Primero entrena el modelo.");
+        return;
+    }
+
+    switch (modelSelect.value) {
+        case "regresion_lineal":
+        case "regresion_polinomial":
+            showRegressionChart();
+            break;
+        case "kmeans":
+            showClusteringChart();
+            break;
+        default:
+            alert("Este modelo no es compatible con gráficos.");
+    }
+});
+
 });
