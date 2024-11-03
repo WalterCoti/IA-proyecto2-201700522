@@ -6,27 +6,27 @@ const trainButton = document.getElementById("trainButton");
 const predictButton = document.getElementById("predictButton");
 const showGraphButton = document.getElementById("showGraphButton");
 const graphCanvas = document.getElementById("graphCanvas");
-const fileinputContent = document.getElementById("fileinputContent"); // Asegúrate de que el id sea correcto
+const fileContent = document.getElementById("fileContent");
 
 // Variables para almacenar datos
 let data = [];
 let labels = [];
 let model;
-let fileContent = "";
+let csvContent = "";
 
 // Función para leer el archivo CSV
-fileInput.addEventListener("change", function(event) {
+fileInput.addEventListener("change", (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
-    reader.onload = function(e) {
-        fileContent = e.target.result;
-        parseCSV(fileContent);
-        fileinputContent.innerText = fileContent; // Usar innerText en lugar de innerHTML para texto plano
+    reader.onload = (e) => {
+        csvContent = e.target.result;
+        parseCSV(csvContent);
+        fileContent.value = csvContent;
     };
     reader.readAsText(file);
 });
 
-// Función para parsear CSV a data y labels
+// Función para parsear CSV
 function parseCSV(text) {
     const lines = text.trim().split("\n");
     data = [];
@@ -35,18 +35,17 @@ function parseCSV(text) {
     lines.forEach((line, index) => {
         const values = line.split(",");
         if (index === 0) {
-            labels = values; // Asignamos etiquetas de columnas
+            labels = values;
         } else {
             data.push(values.map(value => parseFloat(value)));
         }
     });
-
     console.log("Datos cargados:", data);
     console.log("Etiquetas:", labels);
 }
 
 // Función para entrenar el modelo
-trainButton.addEventListener("click", function() {
+trainButton.addEventListener("click", () => {
     const selectedModel = modelSelect.value;
     const percentage = parseInt(trainPercentage.value) / 100;
 
@@ -57,7 +56,7 @@ trainButton.addEventListener("click", function() {
             break;
         case "kmeans":
             model = new KMeans();
-            model.inicializar(3, data); // K = 3
+            model.inicializar(3, data);
             break;
         case "bayes":
             model = new NaiveBayes();
@@ -67,16 +66,25 @@ trainButton.addEventListener("click", function() {
             model = new LinearRegression();
             model.fit(data.map(row => row[0]), data.map(row => row[1]));
             break;
+        case "regresion_polinomial":
+            // Implementación para regresión polinomial
+            model = new PolynomialRegression();
+            model.fit(data.map(row => row[0]), data.map(row => row[1]));
+            break;
+        case "arbol_decision":
+            // Implementación para árbol de decisión
+            model = new DecisionTreeID3(data);
+            model.train(data);
+            break;
         default:
             alert("Modelo no soportado.");
             return;
     }
-
     alert("Entrenamiento completado");
 });
 
-// Función para predecir (Ejemplo de uso en kNN y Regresión Lineal)
-predictButton.addEventListener("click", function() {
+// Función para predicción
+predictButton.addEventListener("click", () => {
     if (!model) {
         alert("Primero entrena el modelo.");
         return;
@@ -85,16 +93,17 @@ predictButton.addEventListener("click", function() {
     let prediction;
     switch (modelSelect.value) {
         case "knn":
-            const sample = [/* valores de ejemplo aquí */];
+            const sample = [5.1, 3.5, 1.4];
             prediction = model.predecir(sample);
-            console.log("Predicción de k-NN:", prediction);
             break;
         case "regresion_lineal":
-            const xValue = 5; // Cambia por el valor a predecir
+        case "regresion_polinomial":
+            const xValue = 5;
             prediction = model.predict([xValue]);
-            console.log("Predicción de Regresión Lineal:", prediction);
             break;
-        // Agregar casos para otros modelos
+        case "arbol_decision":
+            prediction = model.predict(data);
+            break;
         default:
             alert("Modelo no soportado para predicción.");
             return;
@@ -103,7 +112,7 @@ predictButton.addEventListener("click", function() {
 });
 
 // Función para graficar resultados
-showGraphButton.addEventListener("click", function() {
+showGraphButton.addEventListener("click", () => {
     if (!model) {
         alert("Primero entrena el modelo.");
         return;
@@ -112,7 +121,7 @@ showGraphButton.addEventListener("click", function() {
     const ctx = graphCanvas.getContext("2d");
     ctx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
 
-    if (modelSelect.value === "regresion_lineal") {
+    if (modelSelect.value === "regresion_lineal" || modelSelect.value === "regresion_polinomial") {
         const xValues = data.map(row => row[0]);
         const yValues = data.map(row => row[1]);
         const yPredicted = model.predict(xValues);
@@ -133,5 +142,10 @@ showGraphButton.addEventListener("click", function() {
         ctx.stroke();
     }
 
-    // Otros gráficos para otros modelos según sea necesario
+    if (modelSelect.value === "kmeans") {
+        // Implementación para graficar clusters
+        // Acceder a los centros y asignaciones de los clusters
+    }
+
+    // Otros gráficos para otros modelos
 });

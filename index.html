@@ -21,11 +21,12 @@
             <label for="fileInput">Seleccionar archivo CSV:</label>
             <input type="file" id="fileInput" accept=".csv">
         </div>
-        <div class="section">
-            <label for="fileInput">Contenido del archivo CSV:</label>
-            <textarea id="fileContent" rows="10"></textarea>
-        </div>
         
+        <div class="section">
+            <label for="fileContent">Contenido del archivo CSV:</label>
+            <textarea id="fileContent" rows="10" readonly></textarea>
+        </div>
+
         <div class="section">
             <label for="modelSelect">Seleccionar Modelo de Machine Learning:</label>
             <select id="modelSelect">
@@ -33,7 +34,8 @@
                 <option value="kmeans">K-Means Clustering</option>
                 <option value="bayes">Naive Bayes</option>
                 <option value="regresion_lineal">Regresión Lineal</option>
-                <!-- Agregar más opciones según los modelos soportados por tytus.js -->
+                <option value="regresion_polinomial">Regresión Polinomial</option>
+                <option value="arbol_decision">Árbol de Decisión</option>
             </select>
         </div>
 
