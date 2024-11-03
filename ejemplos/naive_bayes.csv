@@ -1,0 +1,11 @@
+empleo,ingreso,credito,label
+si,alto,bueno,positivo
+si,medio,bueno,positivo
+no,bajo,malo,negativo
+si,bajo,malo,negativo
+no,medio,bueno,negativo
+si,alto,bueno,positivo
+si,medio,malo,positivo
+no,bajo,bueno,negativo
+no,alto,malo,negativo
+si,medio,bueno,positivo
